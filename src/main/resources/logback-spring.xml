@@ -1,0 +1,104 @@
+<!-- src/main/resources/logback-spring.xml -->
+<configuration>
+
+    <!-- ── PROPRIEDADES ─────────────────────────────────────────── -->
+    <property name="LOG_PATH" value="logs"/>
+    <property name="APP_NAME" value="helppet"/>
+
+    <!--
+        PADRÃO DE LINHA EXPLICADO:
+        %d{HH:mm:ss.SSS}   → hora com milissegundos
+        [%thread]           → nome da thread (ex: http-nio-8080-exec-3)
+        %-5level            → nível alinhado em 5 chars (INFO , WARN , ERROR)
+        [%X{requestId}]     → campo do MDC injetado pelo LoggingFilter
+        [%X{method} %X{uri}]→ método HTTP e URI da request
+        %logger{36}         → nome da classe que gerou o log (até 36 chars)
+        %msg%n              → a mensagem + quebra de linha
+    -->
+    <property name="LOG_PATTERN"
+              value="%d{HH:mm:ss.SSS} [%thread] %-5level [req=%X{requestId}] [%X{method} %X{uri}] %logger{36} - %msg%n"/>
+
+    <!-- ── APPENDER: CONSOLE ────────────────────────────────────── -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ── APPENDER: ARQUIVO ROTACIONADO ────────────────────────── -->
+    <!--
+        RollingFileAppender: grava em arquivo.
+        TimeBasedRollingPolicy: roda o arquivo todo dia à meia-noite,
+        renomeia para helppet-2025-06-01.log e cria um novo helppet.log.
+        maxHistory=30 → apaga arquivos com mais de 30 dias automaticamente.
+        totalSizeCap  → limite total de disco para todos os arquivos de log.
+    -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${APP_NAME}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${APP_NAME}-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ── APPENDER: ARQUIVO APENAS DE ERROS ───────────────────── -->
+    <!--
+        ThresholdFilter: filtra somente logs de nível ERROR ou acima.
+        Útil para ter um arquivo dedicado de erros críticos,
+        fácil de monitorar em produção.
+    -->
+    <appender name="FILE_ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${APP_NAME}-errors.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${APP_NAME}-errors-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>60</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ── PERFIL: DESENVOLVIMENTO ──────────────────────────────── -->
+    <!--
+        springProfile: o Logback lê o spring.profiles.active do contexto.
+        Em dev, DEBUG ativo para o pacote do projeto e só vai pro console.
+    -->
+    <springProfile name="dev">
+        <logger name="com.helppet" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+    </springProfile>
+
+    <!-- ── PERFIL: PRODUÇÃO ──────────────────────────────────────── -->
+    <!--
+        Em prod, INFO para o projeto e os logs vão tanto pro console
+        quanto para arquivo. Erros também vão para o arquivo separado.
+    -->
+    <springProfile name="prod">
+        <logger name="com.helppet" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="FILE_ERROR"/>
+        </logger>
+    </springProfile>
+
+    <!-- Root logger: captura tudo que não foi tratado pelos loggers acima -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</configuration>

@@ -1,7 +1,6 @@
 package com.helppet.config;
 
 import com.helppet.filter.RequestContextFilter;
-import com.helppet.util.JwtUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

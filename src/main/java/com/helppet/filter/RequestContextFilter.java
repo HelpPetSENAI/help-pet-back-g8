@@ -25,7 +25,7 @@ import java.util.UUID;
  * 
  * Se algum header obrigatório estiver faltando, a requisição é rejeitada com erro 401/400.
  */
-@Component
+@Component("customRequestContextFilter")
 public class RequestContextFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestContextFilter.class);

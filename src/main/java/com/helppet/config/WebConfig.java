@@ -23,12 +23,12 @@ public class WebConfig {
      * 3. Controllers recebem contexto disponível
      */
     @Bean
-    public FilterRegistrationBean<RequestContextFilter> requestContextFilter(RequestContextFilter filter) {
+    public FilterRegistrationBean<RequestContextFilter> customRequestContextFilterRegistration(RequestContextFilter filter) {
         FilterRegistrationBean<RequestContextFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(filter);
         registration.addUrlPatterns("/api/*");
         registration.setOrder(1);
-        registration.setName("RequestContextFilter");
+        registration.setName("customRequestContextFilter");
         return registration;
     }
 }

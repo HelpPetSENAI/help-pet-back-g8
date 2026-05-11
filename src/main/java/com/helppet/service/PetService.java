@@ -3,7 +3,7 @@ package com.helppet.service;
 import com.helppet.dto.request.PetRequest;
 import com.helppet.dto.response.PetResponse;
 import com.helppet.entity.Pet;
-import com.helppet.exception.PetNotFoundException;
+import com.helppet.exception.pet.PetNotFoundException;
 import com.helppet.exception.UnauthorizedPetAccessException;
 import com.helppet.repository.PetRepository;
 import jakarta.transaction.Transactional;

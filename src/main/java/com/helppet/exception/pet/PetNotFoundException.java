@@ -25,4 +25,10 @@ public class PetNotFoundException extends RuntimeException {
     public PetNotFoundException(Long id) {
         super("Pet não foi encontrado para o id: " + id);
     }
+        /**
+     * Construtor que recebe uma mensagem personalizada.
+     */
+    public PetNotFoundException(String message) {
+        super(message);
+    }
 }

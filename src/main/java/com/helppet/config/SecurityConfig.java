@@ -40,8 +40,10 @@ public class SecurityConfig {
                         // Login e criacao de conta sao publicos
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
-                        // Actuator e publico para o Gateway verificar saude
-                        .requestMatchers("/actuator/**").permitAll()
+                        // Actuator health e publico para o Gateway verificar saude
+                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/api/health").permitAll()
+                        .requestMatchers("/error").permitAll()
                         // Todo o resto exige headers do Gateway
                         .anyRequest().authenticated()
                 )

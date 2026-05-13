@@ -45,6 +45,7 @@ public class UserRequest {
      * Campo obrigatório e único no sistema.
      */
     @NotBlank(message = "Este campo não deve estar vazio")
+    @jakarta.validation.constraints.Pattern(regexp = "^\\d{11}$", message = "O CPF deve conter exatamente 11 caracteres numéricos")
     private String cpf;
     
     /**

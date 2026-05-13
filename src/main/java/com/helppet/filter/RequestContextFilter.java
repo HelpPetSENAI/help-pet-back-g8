@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -33,11 +34,33 @@ public class RequestContextFilter extends OncePerRequestFilter {
     private static final String HEADER_USER_ID = "X-User-Id";
     private static final String HEADER_USER_EMAIL = "X-User-Email";
     private static final String HEADER_CORRELATION_ID = "X-Request-Id";
+    private static final String HEADER_INTERNAL_TOKEN = "X-Internal-Token";
+
+    @Value("${internal.service.token:CHANGE_ME_INTERNAL_TOKEN}")
+    private String expectedInternalToken;
 
     private final RequestContext requestContext;
 
     public RequestContextFilter(RequestContext requestContext) {
         this.requestContext = requestContext;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        String method = request.getMethod();
+        
+        // Ignorar rotas publicas
+        if (path.equals("/actuator/health") || path.startsWith("/api/health")) {
+            return true;
+        }
+        if (path.equals("/api/v1/users/login") && "POST".equalsIgnoreCase(method)) {
+            return true;
+        }
+        if (path.equals("/api/v1/users") && "POST".equalsIgnoreCase(method)) {
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -47,6 +70,17 @@ public class RequestContextFilter extends OncePerRequestFilter {
             FilterChain filterChain) throws ServletException, IOException {
 
         try {
+            // ===== Validar token interno entre servicos =====
+            String internalToken = request.getHeader(HEADER_INTERNAL_TOKEN);
+            if (internalToken == null || !internalToken.equals(expectedInternalToken)) {
+                logger.error("Token interno ausente/invalido para requisicao {}", request.getRequestURI());
+                response.sendError(
+                        HttpServletResponse.SC_UNAUTHORIZED,
+                        "Nao autorizado: requisicao nao confiavel entre servicos"
+                );
+                return;
+            }
+
             // ===== Extrair X-User-Id (OBRIGATÓRIO) =====
             String userIdHeader = request.getHeader(HEADER_USER_ID);
             if (userIdHeader == null || userIdHeader.trim().isEmpty()) {
